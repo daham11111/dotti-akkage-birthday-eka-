@@ -1,0 +1,82 @@
+{
+  "intro": {
+    "title": "Look up, Dotti Akka.",
+    "subtitle": "Someone booked you a little flyover ☁️",
+    "button": "Open your surprise",
+    "video": "media/intro.mp4"
+  },
+  "book": {
+    "pageTitle": " little scrapbook",
+    "photos": [
+      "media/photo1.jpg",
+      "media/photo2.jpg",
+      "media/photo3.jpg",
+      "media/photo4.jpg"
+    ],
+    "sticker": "you  ♡",
+    "letterTitle": "A little letter for you",
+    "from": "ME",
+    "to": "Dotti akka",
+    "letter": "**Happy Birthday to My Beautiful Soul Sister! 💗🎂**\n\nYou’re not just my best friend,  but also the sweetest big sister I could ever ask for. Thank you for being such a special part of my life. I hope your birthday brings you endless happiness, beautiful memories, and all the love you truly deserve. Never stop smiling, because your smile makes the world a little brighter. 💕\n\n**Stay blessed, stay beautiful, and always be happy, Akka! Love you loads! ❤️✨**"
+  },
+  "windows": {
+    "title": "Views from our window seat",
+    "items": [
+      {
+        "img": "media/window1.jpg",
+        "caption": "you  ♡"
+      },
+      {
+        "img": "media/window2.jpg",
+        "caption": "you  ♡"
+      },
+      {
+        "img": "media/window3.jpg",
+        "caption": "you  ♡"
+      },
+      {
+        "img": "media/window4.jpg",
+        "caption": "you  ♡"
+      }
+    ]
+  },
+  "music": {
+    "title": "  ♡",
+    "artist": " song  ♡",
+    "src": "media/song.mp3"
+  },
+  "map": {
+    "title": "Memory map",
+    "pins": [
+      {
+        "id": "p1",
+        "x": 14,
+        "y": 42,
+        "img": "media/place1.jpg",
+        "label": " ♡"
+      },
+      {
+        "id": "p2",
+        "x": 60,
+        "y": 44,
+        "img": "media/place2.jpg",
+        "label": " ♡"
+      },
+      {
+        "id": "p3",
+        "x": 84,
+        "y": 30,
+        "img": "media/place3.jpg",
+        "label": " ♡"
+      },
+      {
+        "id": "p4",
+        "x": 77,
+        "y": 80,
+        "img": "media/place4.jpg",
+        "label": " ♡"
+      }
+    ]
+  },
+  "footer": "There's more here ♡"
+}

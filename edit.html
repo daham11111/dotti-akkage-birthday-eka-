@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Edit — Look Up</title>
+<meta name="robots" content="noindex" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500&family=Nunito:wght@400;600;700&display=swap" />
+<style>
+  :root{--pink:#e88aa8;--ink:#4a3b40;--paper:#fdf6ef;--line:#ecd9d0}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Nunito,sans-serif;background:var(--paper);color:var(--ink)}
+  header{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--line);padding:12px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  header h1{font-family:Caveat,cursive;font-size:30px;margin:0;flex:1;color:var(--pink)}
+  .btn{border:0;border-radius:999px;padding:10px 18px;font-weight:700;cursor:pointer;font-size:15px;text-decoration:none;display:inline-block}
+  .primary{background:var(--pink);color:#fff}.ghost{background:#f4e6e0;color:var(--ink)}
+  main{max-width:900px;margin:0 auto;padding:16px}
+  section{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin:16px 0}
+  section h2{font-family:Caveat,cursive;font-size:28px;margin:0 0 10px}
+  label{display:block;font-weight:600;font-size:14px;margin:10px 0 4px}
+  input[type=text],textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font:inherit}
+  textarea{min-height:140px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+  .slot{border:1px dashed var(--line);border-radius:12px;padding:8px;text-align:center}
+  .slot img,.slot video{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;background:#f8ece6;display:block}
+  .ph{width:100%;aspect-ratio:1;border-radius:8px;background:#f8ece6;display:flex;align-items:center;justify-content:center;font-size:40px;color:var(--pink)}
+  .up{margin-top:8px;display:inline-block;background:var(--pink);color:#fff;border-radius:999px;padding:7px 14px;font-weight:700;cursor:pointer;font-size:14px}
+  .up input{display:none}
+  .help{background:#fff4f7;border:1px solid #f3c9d6;border-radius:12px;padding:12px 16px;font-size:14px;line-height:1.6}
+  #status{font-size:14px}
+</style>
+</head>
+<body>
+<header>
+  <h1>✏️ Edit your surprise</h1>
+  <a class="btn ghost" href="./index.html">← View site</a>
+  <button class="btn primary" id="dl">📦 Download updated ZIP</button>
+  <span id="status"></span>
+</header>
+<main>
+  <div class="help">
+    <b>Kohomada use karanne:</b> Photos / song / video "Upload" click karala select karanna, text wenas karanna.
+    Iwara wunama <b>📦 Download updated ZIP</b> click karanna. E zip eka unzip karala, GitHub repo ekata
+    <b>Add file → Upload files</b> walin okkoma files danna (parana ewa replace wenawa) → <b>Commit changes</b>.
+    Minithu 1-2 kin link eka thiyena hamotama aluth photos penawa.
+  </div>
+  <div id="app">Loading…</div>
+</main>
+<script src="./assets/jszip.min.js"></script>
+<script>
+const STATIC_FILES = ["index.html","edit.html","favicon.ico",".nojekyll","README.md","assets/jszip.min.js","assets/edit-button.js"];
+let C = null;               // content.json
+const uploads = {};         // path-key -> File
+const $ = (h)=>{const t=document.createElement('template');t.innerHTML=h.trim();return t.content.firstChild};
+const esc = s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function get(path){return path.split('.').reduce((o,k)=>o?.[k],C)}
+function set(path,v){const ks=path.split('.');let o=C;ks.slice(0,-1).forEach(k=>o=o[k]);o[ks.at(-1)]=v}
+
+function textField(label,path,multi){
+  const el=$(`<div><label>${label}</label>${multi?`<textarea></textarea>`:`<input type="text">`}</div>`);
+  const i=el.querySelector('input,textarea');i.value=get(path)??'';i.oninput=()=>set(path,i.value);return el;
+}
+function mediaSlot(label,path,kind){ // kind: image|audio|video
+  const el=$(`<div class="slot"><div class="pv"></div><div style="font-size:13px;margin-top:6px">${esc(label)}</div>
+    <label class="up">Upload<input type="file" accept="${kind}/*"></label></div>`);
+  const pv=el.querySelector('.pv');
+  const render=(src)=>{
+    if(kind==='image') pv.innerHTML=`<img src="${src}" onerror="this.outerHTML='<div class=ph>♡</div>'">`;
+    else if(kind==='video') pv.innerHTML=`<video src="${src}" muted playsinline controls></video>`;
+    else pv.innerHTML=`<audio src="${src}" controls style="width:100%"></audio>`;
+  };
+  render(get(path)+'?v='+Date.now());
+  el.querySelector('input').onchange=e=>{
+    const f=e.target.files[0];if(!f)return;
+    const ext=(f.name.split('.').pop()||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+    const base=path.replace(/[^a-z0-9]+/gi,'-').toLowerCase();
+    const newPath=`media/${base}.${ext}`;
+    uploads[newPath]=f; set(path,newPath); render(URL.createObjectURL(f));
+  };
+  return el;
+}
+function section(title,...kids){const s=$(`<section><h2>${title}</h2></section>`);kids.forEach(k=>s.append(k));return s}
+function grid(...kids){const g=$(`<div class="grid"></div>`);kids.forEach(k=>g.append(k));return g}
+
+function build(){
+  const app=document.getElementById('app');app.innerHTML='';
+  app.append(section('Intro',
+    textField('Title','intro.title'),textField('Subtitle','intro.subtitle'),textField('Button text','intro.button'),
+    grid(mediaSlot('Intro video','intro.video','video'))));
+  app.append(section('Scrapbook',
+    textField('Page title','book.pageTitle'),textField('Sticker','book.sticker'),
+    grid(...C.book.photos.map((_,i)=>mediaSlot('Photo '+(i+1),'book.photos.'+i,'image')))));
+  app.append(section('Letter',
+    textField('Letter title','book.letterTitle'),textField('To','book.to'),textField('From','book.from'),
+    textField('Letter','book.letter',true)));
+  const w=section('Window photos',textField('Title','windows.title'));
+  const wg=grid();C.windows.items.forEach((_,i)=>{const b=mediaSlot('Window '+(i+1),`windows.items.${i}.img`,'image');b.append(textField('Caption',`windows.items.${i}.caption`));wg.append(b)});
+  w.append(wg);app.append(w);
+  app.append(section('Song',
+    textField('Title','music.title'),textField('Artist','music.artist'),mediaSlot('Song (MP3)','music.src','audio')));
+  const m=section('Memory map',textField('Title','map.title'));
+  const mg=grid();C.map.pins.forEach((_,i)=>{const b=mediaSlot('Place '+(i+1),`map.pins.${i}.img`,'image');b.append(textField('Place name',`map.pins.${i}.label`));mg.append(b)});
+  m.append(mg);app.append(m);
+  app.append(section('Footer',textField('Footer text','footer')));
+}
+
+function collectMedia(o,out){if(typeof o==='string'){if(o.startsWith('media/'))out.add(o)}else if(o&&typeof o==='object')Object.values(o).forEach(v=>collectMedia(v,out));return out}
+
+document.getElementById('dl').onclick=async()=>{
+  const st=document.getElementById('status');st.textContent='Preparing zip…';
+  try{
+    const zip=new JSZip();
+    // site files listed in files.json (built css/js) + static files
+    let list=[];try{list=await (await fetch('files.json?v='+Date.now())).json()}catch{}
+    for(const p of new Set([...STATIC_FILES,...list,'files.json'])){
+      try{const r=await fetch(p+'?v='+Date.now());if(r.ok)zip.file(p,await r.blob())}catch{}
+    }
+    zip.file('content.json',JSON.stringify(C,null,2));
+    for(const p of collectMedia(C,new Set())){
+      if(uploads[p]){zip.file(p,uploads[p]);continue}
+      try{const r=await fetch(p);if(r.ok&&!(r.headers.get('content-type')||'').includes('text/html'))zip.file(p,await r.blob())}catch{}
+    }
+    if(!zip.file('.nojekyll'))zip.file('.nojekyll','');
+    const blob=await zip.generateAsync({type:'blob',compression:'STORE'});
+    const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='look-up-site.zip';
+    document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);
+    st.textContent='✅ Downloaded! Upload it to GitHub.';
+  }catch(e){st.textContent='Error: '+e.message}
+};
+
+fetch('content.json?v='+Date.now()).then(r=>r.json()).then(j=>{C=j;build()})
+  .catch(()=>document.getElementById('app').textContent='content.json load wenne naha. Site eka GitHub Pages link eken open karanna.');
+</script>
+</body>
+</html>
